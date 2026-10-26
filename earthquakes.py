@@ -46,7 +46,7 @@ def get_year(earthquake):
     """Extract the year in which an earthquake happened."""
     timestamp = earthquake["properties"]["time"]
 
-    # Convert milliseconds to seconds, then extract the year in UTC.
+    # Convert milliseconds to seconds and use UTC.
     return datetime.fromtimestamp(
         timestamp / 1000, tz=timezone.utc
     ).year
@@ -81,8 +81,8 @@ def plot_average_magnitude_per_year(earthquakes):
         if magnitudes:
             averages.append(sum(magnitudes) / len(magnitudes))
         else:
-            # No observations means an undefined average, not zero.
-            averages.append(float("nan"))
+            # Zero is a plotting placeholder, not a measured mean.
+            averages.append(0)
 
     fig, ax = plt.subplots(figsize=(10, 5))
 
@@ -99,21 +99,27 @@ def plot_average_magnitude_per_year(earthquakes):
     ax.set_ylabel("Mean magnitude")
     ax.set_xticks(YEARS)
     ax.tick_params(axis="x", labelrotation=45)
-    ax.set_ylim(bottom=0)
+
+    # Leave space below zero so the zero markers remain visible.
+    ax.set_ylim(bottom=-0.15)
     ax.set_axisbelow(True)
     ax.grid(axis="y", alpha=0.3)
 
     fig.text(
         0.5,
         0.02,
-        "2018 data end at 11 Oct 00:00 UTC. Gaps indicate no valid magnitudes.",
+        "2018 ends at 11 Oct 00:00 UTC. "
+        "Zero is a placeholder for years with no valid magnitudes.",
         ha="center",
         fontsize=9,
     )
     fig.tight_layout(rect=(0, 0.06, 1, 1))
 
     PLOT_DIR.mkdir(exist_ok=True)
-    fig.savefig(PLOT_DIR / "average_magnitude_per_year.png", dpi=200)
+    fig.savefig(
+        PLOT_DIR / "average_magnitude_per_year.png",
+        dpi=200,
+    )
 
 
 def plot_number_per_year(earthquakes):
@@ -127,7 +133,12 @@ def plot_number_per_year(earthquakes):
 
     fig, ax = plt.subplots(figsize=(10, 5))
 
-    ax.bar(YEARS, counts, color="steelblue", width=0.75)
+    ax.bar(
+        YEARS,
+        counts,
+        color="steelblue",
+        width=0.75,
+    )
 
     ax.set_title("Number of earthquakes per year")
     ax.set_xlabel("Year")
@@ -158,14 +169,16 @@ def plot_number_per_year(earthquakes):
     fig.tight_layout(rect=(0, 0.06, 1, 1))
 
     PLOT_DIR.mkdir(exist_ok=True)
-    fig.savefig(PLOT_DIR / "number_per_year.png", dpi=200)
+    fig.savefig(
+        PLOT_DIR / "number_per_year.png",
+        dpi=200,
+    )
 
 
 if __name__ == "__main__":
     quakes = get_data()["features"]
     print(f"Loaded {len(quakes)} earthquakes")
 
-    # Each function creates a separate figure.
     plot_number_per_year(quakes)
     plot_average_magnitude_per_year(quakes)
 
